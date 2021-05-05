@@ -409,7 +409,7 @@ func (cl *Client) AssignGroup(group string, opts ...GroupOpt) {
 	defer cl.triggerUpdateMetadata(true) // we definitely want to trigger a metadata update
 
 	for _, balancer := range g.balancers {
-		g.cooperative = g.cooperative && balancer.isCooperative()
+		g.cooperative = g.cooperative && balancer.IsCooperative()
 	}
 
 	// Ensure all topics exist so that we will fetch their metadata.
@@ -1099,7 +1099,7 @@ start:
 	return nil
 }
 
-func (g *groupConsumer) handleJoinResp(resp *kmsg.JoinGroupResponse) (restart bool, protocol string, plan balancePlan, err error) {
+func (g *groupConsumer) handleJoinResp(resp *kmsg.JoinGroupResponse) (restart bool, protocol string, plan BalancePlan, err error) {
 	if err = kerr.ErrorForCode(resp.ErrorCode); err != nil {
 		switch err {
 		case kerr.MemberIDRequired:
@@ -1156,7 +1156,7 @@ func (g *groupConsumer) handleJoinResp(resp *kmsg.JoinGroupResponse) (restart bo
 	return
 }
 
-func (g *groupConsumer) handleSyncResp(resp *kmsg.SyncGroupResponse, plan balancePlan) error {
+func (g *groupConsumer) handleSyncResp(resp *kmsg.SyncGroupResponse, plan BalancePlan) error {
 	if err := kerr.ErrorForCode(resp.ErrorCode); err != nil {
 		return err
 	}
@@ -1199,8 +1199,8 @@ func (g *groupConsumer) joinGroupProtocols() []kmsg.JoinGroupRequestProtocol {
 	var protos []kmsg.JoinGroupRequestProtocol
 	for _, balancer := range g.balancers {
 		protos = append(protos, kmsg.JoinGroupRequestProtocol{
-			Name: balancer.protocolName(),
-			Metadata: balancer.metaFor(
+			Name: balancer.ProtocolName(),
+			Metadata: balancer.MetaFor(
 				topics,
 				g.nowAssigned,
 				g.generation,
